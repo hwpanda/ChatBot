@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
 			res.status(200).json(response.data);
 		} catch (error) {
-			console.log(error);
+			console.log('error in post: ', error.message);
 			res.status(500).json({ message: 'Something went wrong' });
 		}
 	}

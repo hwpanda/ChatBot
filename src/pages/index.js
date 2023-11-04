@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Image from 'next/image';
 import { Inter } from 'next/font/google';
-import styles from '@/styles/Home.module.css';
 import axios from 'axios';
 import TypingAnimation from '../components/TypingAnimation';
 
@@ -18,10 +15,20 @@ export default function Home() {
 
 		setChatLog((prevChatLog) => [
 			...prevChatLog,
-			{ type: 'user', message: inputValue },
+			{ role: 'user', content: inputValue },
 		]);
 
-		sendMessage(inputValue);
+		const allMessages = (chatLog || []).map(({ role, content }) => ({
+			role,
+			content,
+		}));
+		// add latest user input
+		allMessages.push({ role: 'user', content: inputValue });
+		console.log(typeof allMessages);
+		console.log('allMessages: ', allMessages);
+
+		sendMessage(allMessages);
+		//sendMessage(inputValue);
 
 		setInputValue('');
 	};
@@ -30,8 +37,9 @@ export default function Home() {
 		const url = '/api/chat';
 
 		const data = {
-			model: 'gpt-3.5-turbo-0301',
-			messages: [{ role: 'user', content: message }],
+			model: 'gpt-3.5-turbo',
+			//messages: [{ role: 'user', content: message }],
+			messages: message,
 		};
 
 		setIsLoading(true);
@@ -39,10 +47,13 @@ export default function Home() {
 		axios
 			.post(url, data)
 			.then((response) => {
-				console.log(response);
+				console.log('response after axios: ', response);
 				setChatLog((prevChatLog) => [
 					...prevChatLog,
-					{ type: 'bot', message: response.data.choices[0].message.content },
+					{
+						role: 'assistant',
+						content: response.data.choices[0].message.content,
+					},
 				]);
 				setIsLoading(false);
 			})
@@ -64,15 +75,15 @@ export default function Home() {
 							<div
 								key={index}
 								className={`flex ${
-									message.type === 'user' ? 'justify-end' : 'justify-start'
+									message.role === 'user' ? 'justify-end' : 'justify-start'
 								}`}
 							>
 								<div
 									className={`${
-										message.type === 'user' ? 'bg-purple-500' : 'bg-gray-800'
+										message.role === 'user' ? 'bg-purple-500' : 'bg-gray-800'
 									} rounded-lg p-4 text-white max-w-sm`}
 								>
-									{message.message}
+									{message.content}
 								</div>
 							</div>
 						))}
